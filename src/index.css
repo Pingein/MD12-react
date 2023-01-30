@@ -73,3 +73,7 @@ h1 {
 .todo__task {
   text-align: left;
 }
+
+.hidden {
+  display: none;
+}

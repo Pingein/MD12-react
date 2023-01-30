@@ -1,34 +1,15 @@
 import React, { useRef, useEffect, useState, createElement } from 'react'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import './App.css'
 
 
-const hasParent = (el:HTMLElement) => {
-  return Boolean(el.parentElement)
-}
 
 
 function App() {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [todos, setTodos] = useState<string[]>([])
 
-  const submitHandler = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    let input = inputRef.current?.value
-    if (!input) {
-      return
-    }
-    console.log(`'${input}'`)
-  }
-
-  const createInput = () => {
-    return (
-      <form>
-        <input type="text" onSubmit={(e) => {
-          console.log(e)
-        }}/>
-        <button className='hidden'>
-        </button>
-      </form>
-    )
+  const addTask = (task:string) => {
+    setTodos([...todos, task])
   }
 
   const createTableRow = (task:string) => {
@@ -36,15 +17,14 @@ function App() {
       <tr className='table-row'>
         <td className='todo__completion'>
           <input type="checkbox" onChange={(e) => {
-            if (e.target.checked) {
-              console.log('checked')
-              if (e.currentTarget.parentElement?.nextElementSibling) {
-                e.currentTarget.parentElement.nextElementSibling
-                //e.currentTarget.parentElement.style.textDecoration = 'line-through'
-              }         
-            } else {
-              console.log('unchecked')
-            }
+            if (e.currentTarget.parentElement?.nextElementSibling) { 
+              let task_element = e.currentTarget.parentElement.nextElementSibling as HTMLTableCellElement
+              if (e.target.checked) {
+                task_element.style.textDecoration = 'line-through'   
+              } else {
+                task_element.style.textDecoration = 'none'
+              }
+            } 
           }}/>
         </td>
         <td className='todo__task'>
@@ -52,8 +32,13 @@ function App() {
         </td>
         <td className='todo__options-container'>
           <button className="edit btn" onClick={(e) => {
-            let target = e.currentTarget.parentElement
-            console.log(target?.previousElementSibling)
+            if (e.currentTarget.parentElement?.previousElementSibling) {
+              let target = e.currentTarget.parentElement.previousElementSibling
+              let new_task = prompt('new task name')
+              if (new_task) {
+                target.innerHTML = new_task
+              }
+            }
           }}>
             EDIT
           </button>
@@ -72,17 +57,22 @@ function App() {
   return (
     <div className="App">
       <div className="input container">
-        <form className="input__form" onSubmit={(event) => {
-          submitHandler(event)
+        <form className="input__form" onSubmit={(e) => {
+          e.preventDefault()
+          let input_element = e.currentTarget.firstElementChild as HTMLInputElement
+          let task = input_element.value
+
+          addTask(task)
+          input_element.value = ''
         }}>
-          <input ref={inputRef} type="text" className="input__field" placeholder='enter TODO'/>
+          <input type="text" className="input__field" placeholder='enter TODO' />
           <button type='submit' className='input__submit btn'>ADD</button>
         </form>
       </div>
       <div className="todo container">
         <h1>TODO:</h1>
 
-        <table className='todo__list'>
+        <table id='todo-table' className='todo__list'>
           <thead>
             <tr className='table-row header'>
               <th>||</th>
@@ -96,21 +86,11 @@ function App() {
           </thead>
 
           <tbody>
-            {createTableRow('sleep')}
-            {createTableRow('eat')}
-            {createTableRow('shart')}
-            {createTableRow('repeat')}
-            {createInput()}
+            {todos.map((todo) => createTableRow(todo))}
           </tbody>
-
         </table>
 
       </div>
-      {/* <div className="info container">
-        <p className="info__text">
-          {TODOList}
-        </p>
-      </div> */}
     </div>
   )
 }
